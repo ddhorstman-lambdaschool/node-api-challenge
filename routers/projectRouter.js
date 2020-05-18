@@ -15,7 +15,7 @@ router.post("/", validateProject, async (req, res) => {
   try {
     res.status(201).json(await database.insert(req.body));
   } catch (e) {
-    next({ ...e, status: 500, message: "Database error" });
+    next({ e, status: 500, message: "Database error" });
   }
 });
 
@@ -29,7 +29,7 @@ router.delete("/:id", validateID, async (req, res, next) => {
           message: "There was an error while deleting the record.",
         });
   } catch (e) {
-    next({ ...e, status: 500, message: "Database error" });
+    next({ e, status: 500, message: "Database error" });
   }
 });
 
@@ -37,7 +37,7 @@ router.put("/:id", validateID, validateProject, async (req, res) => {
   try {
     res.status(200).json(await database.update(req.project.id, req.body));
   } catch (e) {
-    next({ ...e, status: 500, message: "Database error" });
+    next({ e, status: 500, message: "Database error" });
   }
 });
 
@@ -55,7 +55,7 @@ async function validateID(req, res, next) {
       ? next()
       : next({ status: 404, message: `${id} is not a valid project ID` });
   } catch (e) {
-    next({ ...e, status: 500, message: "Database error" });
+    next({ e, status: 500, message: "Database error" });
   }
 }
 

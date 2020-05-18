@@ -12,7 +12,7 @@ router.get("/", async (req, res, next) => {
     const { id } = req.project;
     res.status(200).json(await projectDB.getProjectActions(id));
   } catch (e) {
-    next({ ...e, status: 500, message: "Database error" });
+    next({ e, status: 500, message: "Database error" });
   }
 });
 
@@ -22,51 +22,44 @@ router.post("/", validateAction, async (req, res, next) => {
     const action = await actionDB.insert({ ...req.body, project_id });
     res.status(201).json(action);
   } catch (e) {
-    next({ ...e, status: 500, message: "Database error" });
+    next({ e, status: 500, message: "Database error" });
   }
 });
 
-// router.put("/:index", validateAction, async (req, res, next) => {
-//   try {
-//     const { id } = req.project;
-//     const { index } = req.params;
-//     const actions = await projectDB.getProjectActions(id);
-//     const actionID = actions[index] && actions[index].id;
-//     if (!actionID) {
-//       next({
-//         status: 404,
-//         message: `Project ${id} has no action at array index ${index}.`,
-//       });
-//     } else {
-//       const updatedAction = await actionDB.update(actionID, {
-//         ...req.body,
-//         project_id: id,
-//       });
-//       res.status(200).json(updatedAction);
-//     }
-//   } catch (e) {
-//     next({ ...e, status: 500, message: "Database error" });
-//   }
-// });
-
 /*----------------------------------------------------------------------------*/
-/* Routes from server
+/* Direct routes from server
 /* These routes are used to modify actions using their action ID.
 /*----------------------------------------------------------------------------*/
-router.get("/:id", async (req, res, next) => {
-  try {
-    const { id } = req.params;
-    res.status(200).json(await actionDB.get(id));
-  } catch (e) {
-    next({ ...e, status: 500, message: "Database error" });
-  }
+router.get("/:id", validateID, (req, res) => {
+  res.status(200).json(req.action);
 });
 
 router.put("/:id", validateID, validateAction, async (req, res, next) => {
   try {
     const { id } = req.params;
+    const { project_id } = req.action;
+    const updatedAction = await actionDB.update(id, {
+      ...req.body,
+      project_id,
+    });
+    res.status(200).json(updatedAction);
   } catch (e) {
-    next({ ...e, status: 500, message: "Database error" });
+    next({ e, status: 500, message: "Database error" });
+  }
+});
+
+router.delete("/:id", validateID, async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const countRemoved = await actionDB.remove(id);
+    countRemoved == 1
+      ? res.status(200).json(req.action)
+      : next({
+          status: 500,
+          message: "There was an error while deleting the record.",
+        });
+  } catch (e) {
+    next({ e, status: 500, message: "Database error" });
   }
 });
 
@@ -77,13 +70,12 @@ async function validateID(req, res, next) {
   const { id } = req.params;
   try {
     const action = await actionDB.get(id);
-    console.log(action);
     req.action = action;
     action
       ? next()
       : next({ status: 404, message: `${id} is not a valid action ID` });
   } catch (e) {
-    next({ ...e, status: 500, message: "Database error" });
+    next({ e, status: 500, message: "Database error" });
   }
 }
 
