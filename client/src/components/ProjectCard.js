@@ -1,16 +1,21 @@
 import React from "react";
 import { axiosWithoutAuth } from "../utils/axiosWithAuth";
+import { useHistory } from 'react-router-dom';
 
 export default function ProjectCard(props) {
   const { id } = props.match?.params || props;
   const [state, setState] = React.useState(props);
+  const history = useHistory();
 
   React.useEffect(() => {
     axiosWithoutAuth()
       .get(`/projects/${id}`)
       .then(r => setState(r.data))
-      .catch(console.error);
-  }, [id]);
+      .catch(e => {
+        console.error(e);
+        history.push("/projects");
+      });
+  }, [id, history]);
 
   return (
     <div>
