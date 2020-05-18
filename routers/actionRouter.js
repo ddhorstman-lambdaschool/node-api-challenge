@@ -28,7 +28,7 @@ router.post("/", validateAction, async (req, res, next) => {
 
 /*----------------------------------------------------------------------------*/
 /* Direct routes from server
-/* These routes are used to modify actions using their action ID.
+/* These routes are used to manage actions using their action ID.
 /*----------------------------------------------------------------------------*/
 router.get("/:id", validateID, (req, res) => {
   res.status(200).json(req.action);
@@ -36,8 +36,7 @@ router.get("/:id", validateID, (req, res) => {
 
 router.put("/:id", validateID, validateAction, async (req, res, next) => {
   try {
-    const { id } = req.params;
-    const { project_id } = req.action;
+    const { id, project_id } = req.action;
     const updatedAction = await actionDB.update(id, {
       ...req.body,
       project_id,
@@ -50,7 +49,7 @@ router.put("/:id", validateID, validateAction, async (req, res, next) => {
 
 router.delete("/:id", validateID, async (req, res, next) => {
   try {
-    const { id } = req.params;
+    const { id } = req.action;
     const countRemoved = await actionDB.remove(id);
     countRemoved == 1
       ? res.status(200).json(req.action)
@@ -69,9 +68,8 @@ router.delete("/:id", validateID, async (req, res, next) => {
 async function validateID(req, res, next) {
   const { id } = req.params;
   try {
-    const action = await actionDB.get(id);
-    req.action = action;
-    action
+    req.action = await actionDB.get(id);
+    req.action
       ? next()
       : next({ status: 404, message: `${id} is not a valid action ID` });
   } catch (e) {
@@ -103,7 +101,7 @@ function validateAction(req, res, next) {
     : next({
         status: 400,
         message: "Actions require both 'description' and 'notes' fields.",
-        errors,
+        e: errors,
       });
 }
 

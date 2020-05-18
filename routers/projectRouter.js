@@ -4,7 +4,11 @@ const database = require("../data/helpers/projectModel");
 const Validator = require("jsonschema").Validator;
 
 router.get("/", async (req, res) => {
-  res.status(200).json(await database.get());
+  try {
+    res.status(200).json(await database.get());
+  } catch (e) {
+    next({ e, status: 500, message: "Database error" });
+  }
 });
 
 router.get("/:id", validateID, (req, res) => {
@@ -21,7 +25,8 @@ router.post("/", validateProject, async (req, res) => {
 
 router.delete("/:id", validateID, async (req, res, next) => {
   try {
-    const countRemoved = await database.remove(req.project.id);
+    const { id } = req.project;
+    const countRemoved = await database.remove(id);
     countRemoved == 1
       ? res.status(200).json(req.project)
       : next({
@@ -35,7 +40,8 @@ router.delete("/:id", validateID, async (req, res, next) => {
 
 router.put("/:id", validateID, validateProject, async (req, res) => {
   try {
-    res.status(200).json(await database.update(req.project.id, req.body));
+    const { id } = req.project;
+    res.status(200).json(await database.update(id, req.body));
   } catch (e) {
     next({ e, status: 500, message: "Database error" });
   }
@@ -49,9 +55,8 @@ router.use("/:id/actions", validateID, actionRouter);
 async function validateID(req, res, next) {
   const { id } = req.params;
   try {
-    const project = await database.get(id);
-    req.project = project;
-    project
+    req.project = await database.get(id);
+    req.project
       ? next()
       : next({ status: 404, message: `${id} is not a valid project ID` });
   } catch (e) {
@@ -83,7 +88,7 @@ function validateProject(req, res, next) {
     : next({
         status: 400,
         message: "Projects require both 'name' and 'description' fields.",
-        errors,
+        e: errors,
       });
 }
 
