@@ -1,6 +1,7 @@
 import React from "react";
 import { axiosWithoutAuth } from "../utils/axiosWithAuth";
 import ProjectCard from "./ProjectCard";
+import { Link } from "react-router-dom";
 
 const initialState = { projects: [] };
 
@@ -18,12 +19,14 @@ export default class ProjectList extends React.Component {
 
   render() {
     return (
-      <>
+      <div className='project-list'>
         <h1>Projects</h1>
         {this.state.projects.map(project => (
-          <ProjectCard {...project} key={project.id} />
+          <Link key={project.id} to={`/projects/${project.id}`}>
+            <ProjectCard {...project} />
+          </Link>
         ))}
-      </>
+      </div>
     );
   }
 }
