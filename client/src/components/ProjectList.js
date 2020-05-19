@@ -13,7 +13,7 @@ export default class ProjectList extends React.Component {
   }
 
   fetchProjects = async () => {
-    const projects = (await axiosWithoutAuth().get("/projects")).data;
+    const { data: projects } = await axiosWithoutAuth().get("/projects");
     this.setState({ projects });
   };
 

@@ -38,7 +38,7 @@ router.delete("/:id", validateID, async (req, res, next) => {
   }
 });
 
-router.put("/:id", validateID, validateProject, async (req, res) => {
+router.put("/:id", validateID, validateProject, async (req, res, next) => {
   try {
     const { id } = req.project;
     res.status(200).json(await database.update(id, req.body));
