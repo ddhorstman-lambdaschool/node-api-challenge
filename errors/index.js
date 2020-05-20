@@ -1,3 +1,5 @@
+const { ValidationError } = require("jsonschema");
+
 class AppError extends Error {
   constructor(message, status) {
     super(message);
@@ -16,7 +18,7 @@ const catchAsync = fn => (req, res, next) => {
 function errorHandling(error, req, res, next) {
   console.error(error);
   //handle ValidationErrors, which are sent as an array
-  if (Array.isArray(error) && error[0].schema) {
+  if (Array.isArray(error) && error[0] instanceof ValidationError) {
     const message = error.map(e => e.stack);
     return res.status(400).json({ message });
   }
