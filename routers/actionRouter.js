@@ -2,29 +2,31 @@ const router = require("express").Router();
 const actionDB = require("../data/helpers/actionModel");
 const projectDB = require("../data/helpers/projectModel");
 const Validator = require("jsonschema").Validator;
+const { AppError, catchAsync } = require("../errors");
+
+const validateID = catchAsync(validateActionID);
 
 /*----------------------------------------------------------------------------*/
 /* Sub-routes from projectRouter
 /* These routes modify actions using their associated project ID.
 /*----------------------------------------------------------------------------*/
-router.get("/", async (req, res, next) => {
-  try {
+router.get(
+  "/",
+  catchAsync(async (req, res, next) => {
     const { id } = req.project;
     res.status(200).json(await projectDB.getProjectActions(id));
-  } catch (e) {
-    next({ e, status: 500, message: "Database error" });
-  }
-});
+  })
+);
 
-router.post("/", validateAction, async (req, res, next) => {
-  try {
+router.post(
+  "/",
+  validateAction,
+  catchAsync(async (req, res, next) => {
     const { id: project_id } = req.project;
     const action = await actionDB.insert({ ...req.body, project_id });
     res.status(201).json(action);
-  } catch (e) {
-    next({ e, status: 500, message: "Database error" });
-  }
-});
+  })
+);
 
 /*----------------------------------------------------------------------------*/
 /* Direct routes from server
@@ -34,38 +36,36 @@ router.get("/:id", validateID, (req, res) => {
   res.status(200).json(req.action);
 });
 
-router.put("/:id", validateID, validateAction, async (req, res, next) => {
-  try {
+router.put(
+  "/:id",
+  validateID,
+  validateAction,
+  catchAsync(async (req, res, next) => {
     const { id, project_id } = req.action;
     const updatedAction = await actionDB.update(id, {
       ...req.body,
       project_id,
     });
     res.status(200).json(updatedAction);
-  } catch (e) {
-    next({ e, status: 500, message: "Database error" });
-  }
-});
+  })
+);
 
-router.delete("/:id", validateID, async (req, res, next) => {
-  try {
+router.delete(
+  "/:id",
+  validateID,
+  catchAsync(async (req, res, next) => {
     const { id } = req.action;
     const countRemoved = await actionDB.remove(id);
     countRemoved == 1
       ? res.status(200).json(req.action)
-      : next({
-          status: 500,
-          message: "There was an error while deleting the record.",
-        });
-  } catch (e) {
-    next({ e, status: 500, message: "Database error" });
-  }
-});
+      : next(new AppError("There was an error while deleting the record.",500));
+  })
+);
 
 /*----------------------------------------------------------------------------*/
 /* Middleware
 /*----------------------------------------------------------------------------*/
-async function validateID(req, res, next) {
+async function validateActionID(req, res, next) {
   const { id } = req.params;
   try {
     req.action = await actionDB.get(id);

@@ -2,66 +2,64 @@ const router = require("express").Router();
 const actionRouter = require("./actionRouter");
 const database = require("../data/helpers/projectModel");
 const Validator = require("jsonschema").Validator;
+const { AppError, catchAsync } = require("../errors");
 
-router.get("/", async (req, res) => {
-  try {
+const validateID = catchAsync(validateProjectID);
+
+router.get(
+  "/",
+  catchAsync(async (req, res) => {
     res.status(200).json(await database.get());
-  } catch (e) {
-    next({ e, status: 500, message: "Database error" });
-  }
-});
+  })
+);
 
 router.get("/:id", validateID, (req, res) => {
   res.status(200).json(req.project);
 });
 
-router.post("/", validateProject, async (req, res) => {
-  try {
+router.post(
+  "/",
+  validateProject,
+  catchAsync(async (req, res) => {
     res.status(201).json(await database.insert(req.body));
-  } catch (e) {
-    next({ e, status: 500, message: "Database error" });
-  }
-});
+  })
+);
 
-router.delete("/:id", validateID, async (req, res, next) => {
-  try {
+router.delete(
+  "/:id",
+  validateID,
+  catchAsync(async (req, res, next) => {
     const { id } = req.project;
     const countRemoved = await database.remove(id);
     countRemoved == 1
       ? res.status(200).json(req.project)
-      : next({
-          status: 500,
-          message: "There was an error while deleting the record.",
-        });
-  } catch (e) {
-    next({ e, status: 500, message: "Database error" });
-  }
-});
+      : next(
+          new AppError("There was an error while deleting the record.", 500)
+        );
+  })
+);
 
-router.put("/:id", validateID, validateProject, async (req, res, next) => {
-  try {
+router.put(
+  "/:id",
+  validateID,
+  validateProject,
+  catchAsync(async (req, res, next) => {
     const { id } = req.project;
     res.status(200).json(await database.update(id, req.body));
-  } catch (e) {
-    next({ e, status: 500, message: "Database error" });
-  }
-});
+  })
+);
 
 router.use("/:id/actions", validateID, actionRouter);
 
 /*----------------------------------------------------------------------------*/
 /* Middleware
 /*----------------------------------------------------------------------------*/
-async function validateID(req, res, next) {
+async function validateProjectID(req, res, next) {
   const { id } = req.params;
-  try {
-    req.project = await database.get(id);
-    req.project
-      ? next()
-      : next({ status: 404, message: `${id} is not a valid project ID` });
-  } catch (e) {
-    next({ e, status: 500, message: "Database error" });
-  }
+  req.project = await database.get(id);
+  req.project
+    ? next()
+    : next(new AppError(`${id} is not a valid project ID`, 404));
 }
 
 const projectSchema = {
