@@ -1,7 +1,7 @@
 const router = require("express").Router();
 const actionRouter = require("./actionRouter");
 const database = require("../data/helpers/projectModel");
-const Validator = require("jsonschema").Validator;
+const { Validator } = require("jsonschema");
 const { AppError, catchAsync } = require("../errors");
 
 const validateID = catchAsync(validateProjectID);
