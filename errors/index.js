@@ -19,7 +19,7 @@ function errorHandling(error, req, res, next) {
   console.error(error);
   //handle ValidationErrors, which are sent as an array
   if (Array.isArray(error) && error[0] instanceof ValidationError) {
-    const message = error.map(e => e.stack);
+    const message = error.map(e => e.stack.replace(/"/g,"'"));
     return res.status(400).json({ message });
   }
   //handle ordinary errors
