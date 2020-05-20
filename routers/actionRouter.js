@@ -8,7 +8,7 @@ const validateID = catchAsync(validateActionID);
 
 /*----------------------------------------------------------------------------*/
 /* Sub-routes from projectRouter
-/* These routes modify actions using their associated project ID.
+/* These routes manage actions using their associated project ID.
 /*----------------------------------------------------------------------------*/
 router.get(
   "/",
@@ -30,7 +30,7 @@ router.post(
 
 /*----------------------------------------------------------------------------*/
 /* Direct routes from server
-/* These routes are used to manage actions using their action ID.
+/* These routes manage actions using their action ID.
 /*----------------------------------------------------------------------------*/
 router.get("/:id", validateID, (req, res) => {
   res.status(200).json(req.action);

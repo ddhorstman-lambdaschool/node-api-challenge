@@ -15,11 +15,20 @@ const catchAsync = fn => (req, res, next) => {
   fn(req, res, next).catch(next);
 };
 
+function custom404(req, res, next) {
+  next(
+    new AppError(
+      `${req.method} on ${req.originalUrl} is not a valid request.`,
+      404
+    )
+  );
+}
+
 function errorHandling(error, req, res, next) {
   console.error(error);
   //handle ValidationErrors, which are sent as an array
-  if (Array.isArray(error) && error[0] instanceof ValidationError) {
-    const message = error.map(e => e.stack.replace(/"/g,"'"));
+  if (error[0] instanceof ValidationError) {
+    const message = error.map(e => e.stack.replace(/"/g, "'"));
     return res.status(400).json({ message });
   }
   //handle ordinary errors
@@ -27,4 +36,4 @@ function errorHandling(error, req, res, next) {
   res.status(status).json({ message });
 }
 
-module.exports = { AppError, catchAsync, errorHandling };
+module.exports = { AppError, catchAsync, custom404, errorHandling };
