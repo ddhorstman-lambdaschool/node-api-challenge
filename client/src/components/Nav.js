@@ -2,7 +2,7 @@ import React from "react";
 import { NavLink } from "react-router-dom";
 
 export default function Nav(props) {
-  const projectID = props.location.pathname.match(/[0-9]+$/)?.[0];
+  const projectID = props.location.pathname.match(/\d+$/)?.[0];
   return (
     <nav>
       <NavLink exact to='/'>
