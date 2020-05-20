@@ -69,14 +69,11 @@ router.delete(
 /*----------------------------------------------------------------------------*/
 async function validateActionID(req, res, next) {
   const { id } = req.params;
-  try {
-    req.action = await actionDB.get(id);
-    req.action
-      ? next()
-      : next({ status: 404, message: `${id} is not a valid action ID` });
-  } catch (e) {
-    next({ e, status: 500, message: "Database error" });
-  }
+
+  req.action = await actionDB.get(id);
+  req.action
+    ? next()
+    : next(new AppError(`${id} is not a valid action ID`, 404));
 }
 
 const actionSchema = {
