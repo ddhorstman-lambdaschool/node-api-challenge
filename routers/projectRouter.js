@@ -81,13 +81,7 @@ const projectSchema = {
 function validateProject(req, res, next) {
   const v = new Validator();
   const { errors } = v.validate(req.body, projectSchema);
-  errors.length === 0
-    ? next()
-    : next({
-        status: 400,
-        message: "Projects require both 'name' and 'description' fields.",
-        e: errors,
-      });
+  errors.length !== 0 ? next(errors) : next();
 }
 
 module.exports = router;

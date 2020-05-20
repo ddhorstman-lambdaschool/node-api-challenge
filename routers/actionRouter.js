@@ -58,7 +58,9 @@ router.delete(
     const countRemoved = await actionDB.remove(id);
     countRemoved == 1
       ? res.status(200).json(req.action)
-      : next(new AppError("There was an error while deleting the record.",500));
+      : next(
+          new AppError("There was an error while deleting the record.", 500)
+        );
   })
 );
 
@@ -96,13 +98,7 @@ const actionSchema = {
 function validateAction(req, res, next) {
   const v = new Validator();
   const { errors } = v.validate(req.body, actionSchema);
-  errors.length === 0
-    ? next()
-    : next({
-        status: 400,
-        message: "Actions require both 'description' and 'notes' fields.",
-        e: errors,
-      });
+  errors.length !== 0 ? next(errors) : next();
 }
 
 module.exports = router;

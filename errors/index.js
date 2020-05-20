@@ -14,7 +14,13 @@ const catchAsync = fn => (req, res, next) => {
 };
 
 function errorHandling(error, req, res, next) {
-  console.error(error.e || error.err || error.error || error.errors || error);
+  console.error(error);
+  //handle ValidationErrors, which are sent as an array
+  if (Array.isArray(error)) {
+    const message = error.map(e => e.stack);
+    return res.status(400).json({ message });
+  }
+  //handle ordinary errors
   const { status = 500, message = "Error" } = error;
   res.status(status).json({ message });
 }
