@@ -16,7 +16,7 @@ const catchAsync = fn => (req, res, next) => {
 function errorHandling(error, req, res, next) {
   console.error(error);
   //handle ValidationErrors, which are sent as an array
-  if (Array.isArray(error)) {
+  if (Array.isArray(error) && error[0].schema) {
     const message = error.map(e => e.stack);
     return res.status(400).json({ message });
   }
